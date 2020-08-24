@@ -1,0 +1,127 @@
+use Mojolicious::Lite;
+
+use lib '../my_app/lib';
+use Mojo::File qw(curfile);
+use lib curfile->dirname->sibling('lib')->to_string;
+use Data::Dumper;
+use Transactions;
+
+# object to handle the transaction actions
+my $transactions = new Transactions();
+
+# errors
+my $error_codes = {
+    'SUCCESS' => 200,
+    'BAD_REQUEST' => 400,
+    'NOT_FOUND' => 404
+};
+
+# get transaction history 
+# render the list of transactions that the user did.
+get '/urlapi/transactions' => sub {
+    my $c = shift;
+    
+    my @transactions = $transactions->get_all();
+
+    $c->render(json => \@transactions);
+};
+
+# get transaction by id
+# render a given transaction
+get '/urlapi/transactions/:id' => sub {
+    my $c = shift;
+    my $id = $c->stash->{id};
+
+    my $transaction = $transactions->get_transaction_by_id($id);
+    if($transaction) {
+        $c->render(json => $transaction);
+    } else {
+        $c->render(json => "Error: transaction was not found ($id)", status => $error_codes->{NOT_FOUND});
+    }
+};
+
+post '/urlapi/transactions' => sub {
+    my $c = shift;
+    
+    my $params = $c->req->json;
+
+    my ($status_code, $error_message) = $transactions->add_transaction($params);
+    if ($status_code == $error_codes->{SUCCESS}) {
+        $c->render(text => $error_message, status => $error_codes->{SUCCESS});
+    } else { # the FE side should show the proper message when the user is not allowed to make a debit
+        $c->render(text => $error_message, status => $error_codes->{BAD_REQUEST});
+    }
+};
+
+# Route leading to an action that renders a template
+get '/' => sub {
+    my $c = shift;
+    
+    # todo: move out the html and do it in a template file
+    $c->render(template => 'index');
+};
+
+app->start;
+
+__DATA__
+
+@@  index.html.ep
+<html>
+    <head>
+      <title> Money accounting system </title>
+      <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css" integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">
+      <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+      <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.bundle.min.js" integrity="sha384-1CmrxMRARb6aLqgBO7yyAxTOQE2AKb9GfXnEo760AUcUmFx3ibVJJAzGytlQcNXd" crossorigin="anonymous"></script>
+      <style type="text/css">
+        .wrapper { width: 80%; margin: 30px auto}
+        
+        .wrapper .btn-link, wrapper .btn-link:hover:link  { color: #99979c; text-decoration:none }
+        .credit { color: #359e35 }
+        .debit { color: #d82b00 }
+        .credit, .debit { font-weight: bold}
+      </style>
+    </head>
+    <body>
+    
+      <div class="wrapper">
+        <h3>Money accounting system</h3>
+        <div id="accordion"></div>
+      </div>
+
+      <script type="text/javascript">
+        fetch('/urlapi/transactions')
+          .then(response => response.json())
+          .then(transactions => updateAccordeon(transactions))
+
+        const updateAccordeon = transactions => {
+          transactions.map(
+            transaction => addItem(transaction)
+            )
+        }
+
+        const addItem = transaction => {
+          let item = '<div class="card">'
+          item +=  '<div class="card-header" id="' + transaction.id + '">'
+          item +=    '<h5 class="mb-0">'
+          item +=      '<button class="btn btn-link collapsed" type="button" data-toggle="collapse"'
+          item +=        'data-target="#collapse'+ transaction.id +'" aria-expanded="false" aria-controls="collapse'
+          item +=         transaction.id + '">'
+          item +=          "Type: " + '<span class="' + transaction.type + '"' +'>'+ transaction.type + '</span><br />'
+          item +=          "Amount: " + transaction.amount
+          item +=       '</button>'
+          item +=     '</h5>'
+          item +=  '</div>'
+          item +=  '<div id="collapse' + transaction.id + '" class="collapse" aria-labelledby="' + transaction.id +'" data-parent="#accordion">'
+          item +=    '<div class="card-body">'
+          item +=      '<span>Id: '+transaction.id+'</span><br />'
+          item +=      '<span>Date: ' + transaction.effectiveDate +' </span>'
+          item +=    '</div>'
+          item +=  '</div>'
+          item += '</div>'
+            
+          $('#accordion').append(item)
+        }
+
+    </script>
+</body>
+</html>
