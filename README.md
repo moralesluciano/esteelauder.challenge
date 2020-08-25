@@ -5,11 +5,16 @@ To run the application
 ```
 clone this repository
 ```
-Then
+Then run
 
 ```
-$ cd my_app
-$ docker container run --rm -v "$(pwd):/usr/src/app" -p 3000:3000 tekki/mojolicious morbo script/my_app
+$ docker build -t esteelauder .
+```
+
+And
+
+```
+docker run --name=test --rm -p 3000:3000 esteelauder
 ```
 
 Browse to localhost:3000 and the app should show Money accounting system as a header.
@@ -55,14 +60,15 @@ UX/UI requirements
 6. We need a simple UI application for this web service.
 7. Please don't spend time for making it beautiful. Use a standard CSS library, like Bootstrap with a theme (or any other).
 
-I took advantage of bootstrap to do that. I created the template into script/my_app to show the transactions since I ran into some issues with mojo when I tried to created that in a separate file. But, 
+I took advantage of bootstrap to do that. I created the template into script/my_app to show the transactions since I ran into some issues with mojo when I tried to created that in a separate file. But, I only had 3 hours to completed the challenge so I
+didn't spend to much time to solve that.
 
 8. UI application should display the transactions history list only. No other operation is required.
 9. Transactions list should be done in accordion manner. By default the list shows short summary (type and amount) for each transaction. Full info for a transaction should be shown on user's click.
 10. It would be good to have some coloring for credit and debit transactions.
 
 The credit actions will appear in green color and debit in red.
-I would have liked to use angular to take advantage of data binding and update the page every time the transactions are updated instead of doing that manually clicking the refresh button of the browser, but I had 3 hours to complete the challenge. 
+I would have liked to use angular to take advantage of data binding and update the page every time the transactions are updated instead of doing that manually clicking the refresh button of the browser, but I had 3 hours to complete the challenge.
 
 Unit test
 
