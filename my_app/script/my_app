@@ -16,11 +16,11 @@ my $error_codes = {
     'NOT_FOUND' => 404
 };
 
-# get transaction history 
+# get transaction history
 # render the list of transactions that the user did.
 get '/urlapi/transactions' => sub {
     my $c = shift;
-    
+
     my @transactions = $transactions->get_all();
 
     $c->render(json => \@transactions);
@@ -42,7 +42,7 @@ get '/urlapi/transactions/:id' => sub {
 
 post '/urlapi/transactions' => sub {
     my $c = shift;
-    
+
     my $params = $c->req->json;
 
     my ($status_code, $error_message) = $transactions->add_transaction($params);
@@ -56,7 +56,7 @@ post '/urlapi/transactions' => sub {
 # Route leading to an action that renders a template
 get '/' => sub {
     my $c = shift;
-    
+
     # todo: move out the html and do it in a template file
     $c->render(template => 'index');
 };
@@ -74,7 +74,6 @@ __DATA__
       <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.bundle.min.js" integrity="sha384-1CmrxMRARb6aLqgBO7yyAxTOQE2AKb9GfXnEo760AUcUmFx3ibVJJAzGytlQcNXd" crossorigin="anonymous"></script>
       <style type="text/css">
         .wrapper { width: 80%; margin: 30px auto}
-        
         .wrapper .btn-link, wrapper .btn-link:hover:link  { color: #99979c; text-decoration:none }
         .credit { color: #359e35 }
         .debit { color: #d82b00 }
@@ -82,7 +81,7 @@ __DATA__
       </style>
     </head>
     <body>
-    
+
       <div class="wrapper">
         <h3>Money accounting system</h3>
         <div id="accordion"></div>
@@ -118,7 +117,7 @@ __DATA__
           item +=    '</div>'
           item +=  '</div>'
           item += '</div>'
-            
+
           $('#accordion').append(item)
         }
 
